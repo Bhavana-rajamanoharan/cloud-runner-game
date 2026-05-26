@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function Game() {
 
@@ -12,6 +12,7 @@ export default function Game() {
   const [obstacleX, setObstacleX] = useState(800)
 
   const [score, setScore] = useState(0)
+
   const [highScore, setHighScore] = useState(
     Number(localStorage.getItem("highScore")) || 0
   )
@@ -21,41 +22,17 @@ export default function Game() {
   const gravity = -0.45
   const jumpForce = 11
 
-  const jumpSound = useRef(null)
-  const hitSound = useRef(null)
-  const scoreSound = useRef(null)
-
-  useEffect(() => {
-    if (!started) return
-
-    jumpSound.current = new Audio("/jump.mp3")
-    hitSound.current = new Audio("/hit.mp3")
-    scoreSound.current = new Audio("/score.mp3")
-
-  }, [started])
-
-  function playSound(sound) {
-    if (!sound?.current) return
-    sound.current.currentTime = 0
-    sound.current.play().catch(() => {})
-  }
-
   function jump() {
-    if (!started || paused || gameOver) return
-    if (playerY <= 122) {
+    if (playerY <= 122 && !gameOver && started && !paused) {
       setVelocity(jumpForce)
-      playSound(jumpSound)
     }
   }
-
-  const screenWidth =
-    typeof window !== "undefined" ? window.innerWidth : 800
 
   useEffect(() => {
 
     const interval = setInterval(() => {
 
-      if (!started || paused || gameOver) return
+      if (gameOver || !started || paused) return
 
       setScore((s) => {
         const newScore = s + 1
@@ -65,18 +42,15 @@ export default function Game() {
           localStorage.setItem("highScore", newScore)
         }
 
-        if (newScore % 100 === 0) {
-          playSound(scoreSound)
-        }
-
         return newScore
       })
 
-      setSpeed((s) => Math.min(s + 0.0015, 12))
+      setSpeed((s) => Math.min(s + 0.0018, 12))
 
       setVelocity((v) => v + gravity)
 
       setPlayerY((y) => {
+
         let nextY = y + velocity
 
         if (nextY <= 120) {
@@ -88,15 +62,17 @@ export default function Game() {
       })
 
       setObstacleX((x) => {
-        if (x < -60) return screenWidth + 200
+        if (x < -120) {
+          return window.innerWidth + 300
+        }
         return x - speed
       })
 
       const playerLeft = 100
       const playerRight = 185
 
-      const playerBottom = playerY
-      const playerTop = playerY + 60
+      const playerBottom = playerY + 10
+      const playerTop = playerY + 70
 
       const obstacleLeft = obstacleX
       const obstacleRight = obstacleX + 40
@@ -112,7 +88,6 @@ export default function Game() {
 
       if (collision) {
         setGameOver(true)
-        playSound(hitSound)
       }
 
     }, 16)
@@ -131,12 +106,14 @@ export default function Game() {
   ])
 
   useEffect(() => {
+
     function handleKeyDown(e) {
       if (e.code === "Space") jump()
     }
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
+
   })
 
   return (
@@ -176,13 +153,11 @@ export default function Game() {
             height: "90px",
           }}
         >
-
           <div className="absolute inset-0 bg-cyan-300/40 blur-2xl rounded-full"></div>
 
           <div className="absolute bottom-0 left-6 w-16 h-16 bg-white rounded-full"></div>
           <div className="absolute bottom-6 left-12 w-20 h-20 bg-white rounded-full"></div>
           <div className="absolute bottom-0 left-20 w-16 h-16 bg-white rounded-full"></div>
-
         </div>
       )}
 
@@ -201,19 +176,19 @@ export default function Game() {
       {/* SCORE UI */}
       {started && !gameOver && (
         <>
-          <div className="absolute top-2 left-6 z-50 bg-white/10 backdrop-blur-md px-6 py-3 rounded-xl border border-white/20">
-            <h2 className="text-white text-2xl font-black">
+          <div className="absolute top-3 left-4 z-50 bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
+            <h2 className="text-white text-lg md:text-2xl font-black">
               Score: <span className="text-yellow-300">{score}</span>
             </h2>
 
-            <h3 className="text-cyan-200 text-lg mt-2 font-bold">
+            <h3 className="text-cyan-200 text-sm md:text-lg font-bold">
               High Score: <span className="text-cyan-300">{highScore}</span>
             </h3>
           </div>
 
           <button
             onClick={() => setPaused(!paused)}
-            className="absolute top-6 right-6 z-30 w-24 h-24 rounded-full border-[5px] border-cyan-300 bg-blue-700/70 text-white text-5xl font-black shadow-[0_0_50px_rgba(0,255,255,1)] hover:scale-110 transition-all"
+            className="absolute top-6 right-6 z-30 w-20 h-20 md:w-24 md:h-24 rounded-full border-[5px] border-cyan-300 bg-blue-700/70 text-white text-3xl md:text-5xl font-black shadow-[0_0_50px_rgba(0,255,255,1)] hover:scale-110 transition-all"
           >
             {paused ? "▶" : "⏸"}
           </button>
@@ -222,8 +197,8 @@ export default function Game() {
 
       {/* INSTRUCTION */}
       {started && !gameOver && (
-        <div className="absolute bottom-8 w-full text-center z-20 pointer-events-none">
-          <p className="text-white text-lg md:text-2xl font-black tracking-wide">
+        <div className="absolute bottom-6 w-full text-center z-20 px-4 pointer-events-none">
+          <p className="text-white text-sm md:text-2xl font-black tracking-wide">
             Tap or Press Space to Jump
           </p>
         </div>
@@ -231,14 +206,21 @@ export default function Game() {
 
       {/* HOME SCREEN */}
       {!started && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-md z-50">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-md z-50 px-4">
 
-          <h1 className="text-7xl md:text-9xl font-black text-white">
-            CLOUD RUNNER
-          </h1>
+          {/* FIXED TITLE (NO CUT OFF ON MOBILE) */}
+          <div className="text-center">
+            <h1 className="text-5xl sm:text-6xl md:text-9xl font-black text-white leading-none">
+              CLOUD
+            </h1>
+
+            <h1 className="text-5xl sm:text-6xl md:text-9xl font-black text-cyan-300 leading-none -mt-2">
+              RUNNER
+            </h1>
+          </div>
 
           <button
-            className="mt-14 px-16 py-5 text-5xl font-black text-cyan-300"
+            className="mt-12 px-10 py-4 md:px-16 md:py-5 text-3xl md:text-5xl font-black text-cyan-300"
             onClick={() => setStarted(true)}
           >
             PLAY
@@ -249,18 +231,18 @@ export default function Game() {
 
       {/* GAME OVER */}
       {gameOver && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md z-50">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-md z-50 px-4">
 
-          <h1 className="text-7xl font-black text-white">
+          <h1 className="text-5xl md:text-7xl font-black text-white">
             GAME OVER
           </h1>
 
-          <p className="text-white text-3xl mt-4">
+          <p className="text-white text-xl md:text-3xl mt-4">
             Score: <span className="text-yellow-300">{score}</span>
           </p>
 
           <button
-            className="mt-10 px-10 py-4 text-3xl font-black text-cyan-300"
+            className="mt-8 px-8 py-4 md:px-14 md:py-5 text-2xl md:text-4xl font-black text-cyan-300"
             onClick={() => window.location.reload()}
           >
             PLAY AGAIN
