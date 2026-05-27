@@ -130,9 +130,6 @@ export default function Game() {
         w-screen
         h-screen
         overflow-hidden
-        flex
-        items-center
-        justify-center
         bg-gradient-to-b
         from-blue-950
         via-sky-600
@@ -142,130 +139,103 @@ export default function Game() {
       onClick={jump}
     >
 
-      {/* GAME STAGE (ONLY RESPONSIVE CHANGE HERE) */}
-      <div
-        className="
-          relative
-          w-[96vw]
-          sm:w-[92vw]
-          md:w-[85vw]
-          lg:w-[70vw]
-          max-w-[1000px]
-          min-h-[520px]
-          aspect-[16/9]
-          overflow-hidden
-          rounded-2xl
-        "
-      >
+      {/* SKY GLOW */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#00e5ff,transparent_60%)] opacity-90"></div>
 
-        {/* SKY GLOW */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#00e5ff,transparent_60%)] opacity-90"></div>
+      {/* BACKGROUND LIGHTS */}
+      <div className="absolute top-10 left-20 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute top-20 right-20 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
 
-        {/* BACKGROUND LIGHTS */}
-        <div className="absolute top-10 left-10 w-72 h-72 bg-cyan-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-20 right-10 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
+      {/* GROUND */}
+      <div className="absolute bottom-0 w-full h-28 bg-gradient-to-b from-lime-300 via-green-400 to-emerald-500 border-t-[6px] border-lime-100"></div>
 
-        {/* GROUND */}
-        <div className="absolute bottom-0 w-full h-28 bg-gradient-to-b from-lime-300 via-green-400 to-emerald-500 border-t-[6px] border-lime-100"></div>
+      {/* PLAYER CLOUD (HIDDEN ON GAME OVER) */}
+      {started && !gameOver && (
+        <div
+          className="absolute left-16 z-20"
+          style={{ bottom: `${playerY}px` }}
+        >
+          <div className="absolute w-[140px] h-[90px] bg-cyan-300/40 blur-2xl rounded-full"></div>
 
-        {/* PLAYER CLOUD */}
-        {started && (
-          <div
-            className="absolute left-16 z-20"
-            style={{ bottom: `${playerY}px` }}
+          <div className="absolute bottom-0 left-6 w-16 h-16 bg-white rounded-full"></div>
+          <div className="absolute bottom-6 left-12 w-20 h-20 bg-white rounded-full"></div>
+          <div className="absolute bottom-0 left-20 w-16 h-16 bg-white rounded-full"></div>
+        </div>
+      )}
+
+      {/* OBSTACLE (HIDDEN ON GAME OVER) */}
+      {started && !gameOver && (
+        <div
+          className="absolute bottom-28 w-[40px] h-[110px] rounded-3xl border-2 border-pink-200 overflow-hidden"
+          style={{
+            left: `${obstacleX}px`,
+            background: `linear-gradient(to bottom,#ff00ff,#9d4edd,#00d4ff)`,
+            boxShadow: `0 0 15px #ff00ff,0 0 30px #9d4edd,0 0 60px #00d4ff`,
+          }}
+        >
+          <div className="absolute inset-0 bg-white/20 blur-sm"></div>
+        </div>
+      )}
+
+      {/* UI */}
+      {started && !gameOver && (
+        <>
+          <div className="absolute top-4 left-4 z-30 bg-black/30 px-3 py-2 rounded-lg text-white">
+            Score: {score} <br />
+            High: {highScore}
+          </div>
+
+          <button
+            onClick={() => setPaused(!paused)}
+            className="absolute top-4 right-4 z-30 text-white text-3xl"
           >
+            {paused ? "▶" : "⏸"}
+          </button>
 
-            {/* glow */}
-            <div className="absolute w-[140px] h-[90px] bg-cyan-300/40 blur-2xl rounded-full"></div>
-
-            {/* cloud */}
-            <div className="absolute bottom-0 left-6 w-16 h-16 bg-white rounded-full"></div>
-            <div className="absolute bottom-6 left-12 w-20 h-20 bg-white rounded-full"></div>
-            <div className="absolute bottom-0 left-20 w-16 h-16 bg-white rounded-full"></div>
-
+          <div className="absolute bottom-6 w-full text-center text-white font-bold">
+            Tap or Press Space to Jump
           </div>
-        )}
+        </>
+      )}
 
-        {/* OBSTACLE */}
-        {started && (
-          <div
-            className="
-              absolute
-              bottom-28
-              w-[40px]
-              h-[110px]
-              rounded-3xl
-              border-2
-              border-pink-200
-              overflow-hidden
-            "
-            style={{
-              left: `${obstacleX}px`,
-              background: `linear-gradient(to bottom,#ff00ff,#9d4edd,#00d4ff)`,
-              boxShadow: `0 0 15px #ff00ff, 0 0 30px #9d4edd, 0 0 60px #00d4ff`,
-            }}
+      {/* HOME SCREEN */}
+      {!started && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center bg-black/30 backdrop-blur-md">
+
+          <h1 className="text-5xl md:text-7xl font-black text-white">
+            CLOUD RUNNER
+          </h1>
+
+          <button
+            className="mt-8 px-10 py-4 text-2xl text-cyan-300 font-black"
+            onClick={() => setStarted(true)}
           >
-            <div className="absolute inset-0 bg-white/20 blur-sm"></div>
-          </div>
-        )}
+            PLAY
+          </button>
 
-        {/* UI */}
-        {started && !gameOver && (
-          <>
-            <div className="absolute top-3 left-3 z-30 bg-black/30 px-3 py-2 rounded-lg text-white">
-              Score: {score}
-              <br />
-              High: {highScore}
-            </div>
+        </div>
+      )}
 
-            <button
-              onClick={() => setPaused(!paused)}
-              className="absolute top-3 right-3 z-30 text-white text-3xl"
-            >
-              {paused ? "▶" : "⏸"}
-            </button>
+      {/* GAME OVER SCREEN (TOP LAYER FIXED) */}
+      {gameOver && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-white z-50">
 
-            <div className="absolute bottom-5 w-full text-center text-white font-bold">
-              Tap or Press Space to Jump
-            </div>
-          </>
-        )}
+          <h1 className="text-5xl font-black">GAME OVER</h1>
 
-        {/* HOME */}
-        {!started && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center bg-black/30 backdrop-blur-md">
+          <p className="mt-4 text-xl">
+            Score: {score}
+          </p>
 
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-black text-white">
-              CLOUD RUNNER
-            </h1>
+          <button
+            className="mt-6 px-8 py-3 text-cyan-300"
+            onClick={() => window.location.reload()}
+          >
+            RESTART
+          </button>
 
-            <button
-              className="mt-8 px-10 py-4 text-2xl text-cyan-300 font-black"
-              onClick={() => setStarted(true)}
-            >
-              PLAY
-            </button>
+        </div>
+      )}
 
-          </div>
-        )}
-
-        {/* GAME OVER */}
-        {gameOver && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white">
-
-            <h1 className="text-5xl font-black">GAME OVER</h1>
-
-            <button
-              className="mt-6 px-8 py-3 text-cyan-300"
-              onClick={() => window.location.reload()}
-            >
-              RESTART
-            </button>
-
-          </div>
-        )}
-
-      </div>
     </div>
   )
 }
